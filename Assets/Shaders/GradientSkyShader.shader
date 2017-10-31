@@ -102,7 +102,7 @@ Shader "Shaders101/GradientSkyShader"
                 return outData;
             }
             
-            float4 FragmentMain(InterpolatedData inData) : SV_Target
+            half4 FragmentMain(InterpolatedData inData) : SV_Target
             {
                 return inData.m_color;
             }
