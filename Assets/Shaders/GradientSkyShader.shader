@@ -79,7 +79,7 @@ Shader "Shaders101/GradientSkyShader"
                 // revisited in the future.
                 const half3 gradientDirection = normalize(_GradientDirection);
 
-                const half gradientLerp = GradientLerp_Hemispherical(normal, gradientDirection);
+                const half gradientLerp = GradientLerpFactor_Dot01(normal, gradientDirection);
 
             #if MIDDLE_COLOR_ENABLED
                 return Gradient(_StartColor, _MiddleColor, _EndColor, _MiddleSectionLength, gradientLerp);

@@ -8,7 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: GradientSky
   m_Shader: {fileID: 4800000, guid: c01fa364696de1f4e8d82c6f3fd6bd9b, type: 3}
-  m_ShaderKeywords: 
+  m_ShaderKeywords: MIDDLE_COLOR_ENABLED
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -63,8 +63,8 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
-    - _MiddleColorEnable: 0
-    - _MiddleSectionLength: 0.239
+    - _MiddleColorEnable: 1
+    - _MiddleSectionLength: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
