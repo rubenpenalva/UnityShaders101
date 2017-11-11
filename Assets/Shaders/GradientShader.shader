@@ -10,7 +10,7 @@ Shader "Shaders101/GradientShader"
     Properties
     {
         // https://docs.unity3d.com/ScriptReference/MaterialPropertyDrawer.html
-        [Header(Right Face Settings)] _RightHeader ("RightHeader", Float) = 0
+        [Header(Right Face)]
         _RightStartColor            ("Right start color", Color) = (1,0,0,0)
         _RightMiddleColor           ("Right middle color", Color) = (0,1,0,0)
         _RightEndColor              ("Right end color", Color) = (0,0,1,0)
@@ -23,7 +23,59 @@ Shader "Shaders101/GradientShader"
 
         [Space]
 
-        [Header(Back Face Settings)] _BacktHeader ("BackHeader", Float) = 0
+        [Header(Left Face)]
+        _LeftStartColor            ("Left start color", Color) = (1,0,0,0)
+        _LeftMiddleColor           ("Left middle color", Color) = (0,1,0,0)
+        _LeftEndColor              ("Left end color", Color) = (0,0,1,0)
+        _LeftMiddleColorLength     ("Left middle color length", Float) = 0
+        _LeftGradientOffset        ("Left gradient offset", Float) = 0
+        _LeftGradientLength        ("Left gradient length", Range(1,100)) = 1
+        _LeftGradientAngle         ("Left gradient angle", Range(0,6.28)) = 0
+        [Toggle(_LEFTSOLID)]_LS    ("Left solid enabled", Int) = 0
+        [Toggle(_LEFTMIDDLE)]_LM   ("Left middle color enabled", Int) = 0 
+
+        [Space]
+
+        [Header(Top Face)]
+        _TopStartColor            ("Top start color", Color) = (1,0,0,0)
+        _TopMiddleColor           ("Top middle color", Color) = (0,1,0,0)
+        _TopEndColor              ("Top end color", Color) = (0,0,1,0)
+        _TopMiddleColorLength     ("Top middle color length", Float) = 0
+        _TopGradientOffset        ("Top gradient offset", Float) = 0
+        _TopGradientLength        ("Top gradient length", Range(1,100)) = 1
+        _TopGradientAngle         ("Top gradient angle", Range(0,6.28)) = 0
+        [Toggle(_TOPSOLID)]_TS    ("Top solid enabled", Int) = 0
+        [Toggle(_TOPMIDDLE)]_TM   ("Top middle color enabled", Int) = 0 
+
+        [Space]
+
+        [Header(Bottom Face)]
+        _BottomStartColor            ("Bottom start color", Color) = (1,0,0,0)
+        _BottomMiddleColor           ("Bottom middle color", Color) = (0,1,0,0)
+        _BottomEndColor              ("Bottom end color", Color) = (0,0,1,0)
+        _BottomMiddleColorLength     ("Bottom middle color length", Float) = 0
+        _BottomGradientOffset        ("Bottom gradient offset", Float) = 0
+        _BottomGradientLength        ("Bottom gradient length", Range(1,100)) = 1
+        _BottomGradientAngle         ("Bottom gradient angle", Range(0,6.28)) = 0
+        [Toggle(_BOTTOMSOLID)]_BS    ("Bottom solid enabled", Int) = 0
+        [Toggle(_BOTTOMMIDDLE)]_BM   ("Bottom middle color enabled", Int) = 0 
+
+        [Space]
+
+        [Header(Front Face)]
+        _FrontStartColor            ("Front start color", Color) = (1,0,0,0)
+        _FrontMiddleColor           ("Front middle color", Color) = (0,1,0,0)
+        _FrontEndColor              ("Front end color", Color) = (0,0,1,0)
+        _FrontMiddleColorLength     ("Front middle color length", Float) = 0
+        _FrontGradientOffset        ("Front gradient offset", Float) = 0
+        _FrontGradientLength        ("Front gradient length", Range(1,100)) = 1
+        _FrontGradientAngle         ("Front gradient angle", Range(0,6.28)) = 0
+        [Toggle(_FRONTSOLID)]_FS    ("Front solid enabled", Int) = 0
+        [Toggle(_FRONTTMIDDLE)]_FM   ("Front middle color enabled", Int) = 0 
+
+        [Space]
+
+        [Header(Back Face)]
         _BackStartColor            ("Back start color", Color) = (1,0,0,0)
         _BackMiddleColor           ("Back middle color", Color) = (0,1,0,0)
         _BackEndColor              ("Back end color", Color) = (0,0,1,0)
@@ -47,11 +99,24 @@ Shader "Shaders101/GradientShader"
             #pragma shader_feature _RIGHTSOLID
             #pragma shader_feature _RIGHTMIDDLE
 
+            #pragma shader_feature _LEFTSOLID
+            #pragma shader_feature _LEFTMIDDLE
+
+            #pragma shader_feature _TOPSOLID
+            #pragma shader_feature _TOPMIDDLE
+
+            #pragma shader_feature _BOTTOMSOLID
+            #pragma shader_feature _BOTTOMMIDDLE
+
+            #pragma shader_feature _FRONTSOLID
+            #pragma shader_feature _FRONTMIDDLE
+
             #pragma shader_feature _BACKSOLID
             #pragma shader_feature _BACKMIDDLE
 
             #include "UnityCG.cginc"
-            #include "GradientCommon.cginc"
+
+            #include "GradientColor.cginc"
 
             struct VertexData
             {
@@ -65,75 +130,18 @@ Shader "Shaders101/GradientShader"
                 half4 m_color : COLOR;
             };
 
-            half4   _RightStartColor;
-            half4   _RightMiddleColor;
-            half4   _RightEndColor;
-            half    _RightMiddleColorLength;
-            half    _RightGradientOffset;
-            half    _RightGradientLength;
-            half    _RightGradientAngle;
-
-            half4   _BackStartColor;
-            half4   _BackMiddleColor;
-            half4   _BackEndColor;
-            half    _BackMiddleColorLength;
-            half    _BackGradientOffset;
-            half    _BackGradientLength;
-            half    _BackGradientAngle;
-
-            static const half3 RIGHT_DIR = half3(1.0h, 0.0h, 0.0h);
-            static const half3 BACK_DIR = half3(0.0h, 0.0h, -1.0h);
-
-            half4 DirectionalColor(half3 normal, half3 direction, half4 color)
-            {
-                return saturate(dot(normal, direction)) * color;
-            }
-
-            half4 RightColor(half4 position, half3 normal)
-            {
-            #if _RIGHTSOLID
-                const half4 color = _RightStartColor;
-            #else
-                const half2 gradientOffsetScale = half2(_RightGradientOffset, _RightGradientLength);
-
-                #if _RIGHTMIDDLE
-                const half4 color = Gradient_2D(position.zy, _RightStartColor, _RightMiddleColor, _RightEndColor,
-                                                _RightMiddleColorLength, gradientOffsetScale, _RightGradientAngle);
-                #else
-                const half4 color = Gradient_2D(position.zy, _RightStartColor, _RightEndColor, gradientOffsetScale,
-                                                _RightGradientAngle);
-                #endif // _RIGHTMIDDLE
-            #endif // _RIGHTSOLID
-
-                return DirectionalColor(normal, RIGHT_DIR, color);
-            }
-
-            half4 BackColor(half4 position, half3 normal)
-            {
-            #if _BACKSOLID
-                const half4 color = _BackStartColor;
-            #else
-                const half2 gradientOffsetScale = half2(_BackGradientOffset, _BackGradientLength);
-
-                #if _BACKMIDDLE
-                const half4 color = Gradient_2D(position.xy, _BackStartColor, _BackMiddleColor, _BackEndColor,
-                                                _BackMiddleColorLength, gradientOffsetScale, _BackGradientAngle);
-                #else
-                const half4 color = Gradient_2D(position.xy, _BackStartColor, _BackEndColor, gradientOffsetScale,
-                                                _BackGradientAngle);
-                #endif // _BACKMIDDLE
-            #endif // _BACKSOLID
-
-                return DirectionalColor(normal, BACK_DIR, color);
-            }
 
             InterpolatedData VertexShaderMain(VertexData vertexData)
             {
                 InterpolatedData interpolatedData;
                 interpolatedData.m_clipPosition = UnityObjectToClipPos(vertexData.m_position);
 
-                interpolatedData.m_color =  RightColor(vertexData.m_position, vertexData.m_normal) +
-                                            BackColor(vertexData.m_position, vertexData.m_normal);
+                interpolatedData.m_color    =   RightColor(vertexData.m_position, vertexData.m_normal)  +
+                                                LeftColor(vertexData.m_position, vertexData.m_normal)   +
+                                                TopColor(vertexData.m_position, vertexData.m_normal)    +
+                                                BottomColor(vertexData.m_position, vertexData.m_normal) +
+                                                FrontColor(vertexData.m_position, vertexData.m_normal)  +
+                                                BackColor(vertexData.m_position, vertexData.m_normal);
 
                 return interpolatedData;
             }
