@@ -10,6 +10,10 @@ Shader "Shaders101/GradientShader"
     Properties
     {
         // https://docs.unity3d.com/ScriptReference/MaterialPropertyDrawer.html
+        [Header(General Settings)]
+        [KeywordEnum(Local, World)] _GRADIENTSPACE("Gradient Space", Float) = 0
+
+
         [Header(Right Face)]
         _RightStartColor            ("Right start color", Color) = (1,0,0,0)
         _RightMiddleColor           ("Right middle color", Color) = (0,1,0,0)
@@ -96,6 +100,8 @@ Shader "Shaders101/GradientShader"
             #pragma vertex VertexShaderMain
             #pragma fragment FragmentShaderMain
 
+            #pragma multi_compile _GRADIENTSPACE_LOCAL _GRADIENTSPACE_WORLD
+
             #pragma shader_feature _RIGHTSOLID
             #pragma shader_feature _RIGHTMIDDLE
 
@@ -134,14 +140,31 @@ Shader "Shaders101/GradientShader"
             InterpolatedData VertexShaderMain(VertexData vertexData)
             {
                 InterpolatedData interpolatedData;
+
+                // NOTE: Check https://docs.unity3d.com/Manual/SL-BuiltinFunctions.html
                 interpolatedData.m_clipPosition = UnityObjectToClipPos(vertexData.m_position);
 
-                interpolatedData.m_color    =   RightColor(vertexData.m_position, vertexData.m_normal)  +
-                                                LeftColor(vertexData.m_position, vertexData.m_normal)   +
-                                                TopColor(vertexData.m_position, vertexData.m_normal)    +
-                                                BottomColor(vertexData.m_position, vertexData.m_normal) +
-                                                FrontColor(vertexData.m_position, vertexData.m_normal)  +
-                                                BackColor(vertexData.m_position, vertexData.m_normal);
+            #if _GRADIENTSPACE_LOCAL
+
+                const float4 position = vertexData.m_position;
+                const half3 normal = vertexData.m_normal.xyz;
+
+            #else 
+                const float4 position = interpolatedData.m_clipPosition;
+
+                // NOTE: Check Section 1.3 Normals in World Space
+                // http://catlikecoding.com/unity/tutorials/rendering/part-4/
+                // and
+                // https://docs.unity3d.com/Manual/SL-BuiltinFunctions.html
+                const half3 normal = UnityObjectToWorldNormal(vertexData.m_normal.xyz);
+            #endif
+
+                interpolatedData.m_color    =   RightColor(position, normal) +
+                                                LeftColor(position, normal) +
+                                                TopColor(position, normal) +
+                                                BottomColor(position,normal) +
+                                                FrontColor(position, normal) +
+                                                BackColor(position, normal);
 
                 return interpolatedData;
             }
